@@ -72,6 +72,7 @@ python main.py
 
 ## Technologies Used
 
+- Java
 - Python
 - Web framework (e.g., Flask or Django)
 - Database system
