@@ -1,42 +1,104 @@
-# Seizure-Data-Tool---Regional-Organised-Crime-Unit
-A web-based system colloboratively designed for Yorkshire and Humber Regional Organised Crime Unit, 7 members participated for the Enterprise Pro Module.
+# Seizure Data Tool – Regional Organised Crime Unit
 
+A web-based data analysis system collaboratively designed for the **Yorkshire and Humber Regional Organised Crime Unit (YH ROCU)**.
 
-2-WEEK TIMELINE OVERVIEW
+This project was developed as part of the **Enterprise Pro module** by a team of **7 members** over a **two-week development sprint**. The system aims to assist analysts by enabling structured analysis of seizure data and providing visual insights into organised crime activity.
 
-Week 1: Build Core Features
+---
 
-Day	Date	Focus	Key Milestone
+## Project Overview
 
-Day 1	Mon	Setup	Everyone has project running locally
+The Seizure Data Tool allows users to:
 
-Day 2	Tue	Foundation	Database working, basic UI visible
+- Upload seizure datasets
+- Store and manage records in a database
+- Visualise geographic patterns using heat maps
+- Filter and analyse seizure data
+- Generate statistical summaries
+- Export reports
 
-Day 3	Wed	Data Flow	Can upload file and see data in database
+The goal of the system is to support intelligence analysis workflows and help identify trends related to organised crime activities.
 
-Day 4	Thu	Visualisation	Heat map showing on screen
+---
 
-Day 5	Fri	Filtering	Basic filters working
+## Key Features
 
-Day 6	Sat	Statistics	Top 10 lists displaying
+- 📂 **File Upload** – Import seizure datasets
+- 🗄️ **Database Storage** – Store and retrieve seizure records
+- 🗺️ **Heat Map Visualisation** – Display geographical patterns
+- 🔍 **Filtering System** – Analyse subsets of data
+- 📊 **Statistical Analysis** – Top 10 lists and key metrics
+- 📄 **Data Export** – Export results as PDF or CSV
 
-Day 7	Sun	Integration	All core features connected
+---
 
+## Project Structure
 
-Week 2: Polish & Deploy
+```
+Seizure-Data-Tool---Regional-Organised-Crime-Unit/
+│
+├── backend/        # Server-side logic and database interaction
+├── frontend/       # User interface
+├── data/           # Sample or uploaded datasets
+├── exports/        # Generated reports
+├── requirements.txt
+└── README.md
+```
 
-Day	Date	Focus	Key Milestone
+*(Actual structure may vary depending on repository updates.)*
 
-Day 8	Mon	Bug Fixes	Fix issues from Week 1
+---
 
-Day 9	Tue	Optional Features	Data quality, trends
+## Installation
 
-Day 10	Wed	Export	PDF and CSV export working
+Clone the repository:
 
-Day 11	Thu	Testing	Full system test
+```bash
+git clone https://github.com/AzimSWE/Seizure-Data-Tool---Regional-Organised-Crime-Unit.git
+cd Seizure-Data-Tool---Regional-Organised-Crime-Unit
+```
 
-Day 12	Fri	Deployment	Live on internet
+Install dependencies:
 
-Day 13	Sat	Documentation	All docs complete
+```bash
+pip install -r requirements.txt
+```
 
-Day 14	Sun	Final Review	Ready to submit
+Run the application:
+
+```bash
+python main.py
+```
+
+---
+
+## Technologies Used
+
+- Python
+- Web framework (e.g., Flask or Django)
+- Database system
+- Data analysis libraries
+- Mapping / visualisation tools
+
+---
+
+## Team
+
+Developed collaboratively by **7 team members** as part of the Enterprise Pro module.
+
+---
+
+## Disclaimer
+
+This repository is intended for **educational purposes only**.
+
+No operational or sensitive law enforcement data is included in this project.
+
+---
+
+## Author
+
+**Muhammad Gani**
+
+GitHub:  
+https://github.com/AzimSWE
