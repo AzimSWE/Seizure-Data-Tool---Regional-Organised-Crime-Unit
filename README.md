@@ -45,8 +45,6 @@ Seizure-Data-Tool---Regional-Organised-Crime-Unit/
 └── README.md
 ```
 
-*(Actual structure may vary depending on repository updates.)*
-
 ---
 
 ## Installation
