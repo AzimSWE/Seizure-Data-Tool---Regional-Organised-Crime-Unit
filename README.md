@@ -94,9 +94,6 @@ No operational or sensitive law enforcement data is included in this project.
 
 ---
 
-## Author
-
-**Muhammad Gani**
 
 GitHub:  
 https://github.com/AzimSWE
