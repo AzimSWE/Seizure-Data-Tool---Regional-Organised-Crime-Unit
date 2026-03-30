@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8"/>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+	<title>Heatmap</title>
+	<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>  <!-- Loads Leaflet's CSS so the map and controls display correctly -->
+	<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>  <!-- Loads Leaflet JavaScript (map creation, layers, zoom functions) -->
+	<script src="https://unpkg.com/leaflet.heat@0.2.0/dist/leaflet-heat.js"></script>  <!-- Loads the Leaflet.heat plugin, which adds heatmap support to Leaflet -->
+
+	<style>
+		* { margin:0; padding:0; box-sizing:border-box; }
+		body {
+			font-family: 'Segoe UI', sans-serif;
+			background: #f4f5f7;
+			display: flex;
+			flex-direction: column;
+			height: 100vh;
+		}
+
+
+		/* Header Styling */
+
+		header { 
+			background: #fff;
+			border-bottom: 2px solid #e0e0e0;
+			padding: 12px 20px;
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			box-shadow: 0 1px 4px rgba(0,0,0,0.07);
+		}
+
+		header h1 {
+			font-size: 15px;
+			color: #c0392b;
+			font-weight: 700;
+		}
+
+
+		/* Toolbar Styling */
+
+		.toolbar {
+			background: #fff;
+			border-bottom: 1px solid #e0e0e0;
+			padding: 10px 20px;
+			display: flex;
+			gap: 10px;
+			align-items: center;
+			flex-wrap: wrap;
+		}
+
+		button {
+			padding: 7px 14px;
+			background: #fff;
+			border: 1.5px solid #ddd;
+			color: #444;
+			font-size: 12px;
+			cursor: pointer;
+			border-radius: 6px;
+			transition: all 0.15s;
+		}
+
+		button:hover {
+			border-color: #c0392b;
+			color: #c0392b;
+			background: #fff5f5;
+		}
+
+		button.active {
+			background: #c0392b;
+			color: #fff;
+			border-color: #c0392b;
+		}
+
+
+		/* Map Container and Legend Styling */
+
+		.map-wrap {
+			flex: 1;
+			position: relative;
+			overflow: hidden;
+		}
+
+		#map {
+			width: 100%;
+			height: 100%;
+		}
+
+		.legend {
+			position: absolute;
+			bottom: 30px;
+			right: 12px;
+			z-index: 999;
+			background: #fff;
+			border: 1px solid #ddd;
+			border-radius: 10px;
+			padding: 14px 16px;
+			box-shadow: 0 2px 12px rgba(0,0,0,0.15);
+			min-width: 170px;
+		}
+
+		/* Postcode Input, Status and Log Styling */
+
+		#postcode-input {
+			padding: 6px 10px;
+			border: 1.5px solid #ddd;
+			border-radius: 6px;
+			font-size: 12px;
+			width: 130px;
+			outline: none;
+			background: #f9f9f9;
+			transition: border-color 0.15s;
+			text-transform: uppercase;
+		}
+
+		#postcode-input:focus {
+			border-color: #c0392b;
+			background: #fff;
+		}
+
+		#status {
+			font-size: 12px;
+			color: #c0392b;
+			font-weight: 600;
+		}
+
+		#log {
+			background: #fff;
+			border-top: 1px solid #e0e0e0;
+			padding: 5px 18px;
+			font-size: 11px;
+			color: #aaa;
+			height: 26px;
+		}
+
+	</style>
+</head>
+
+
+<!-- The Webpage Body Structure -->
+
+<body> 
+	<header>
+		<h1>MAP SEIZURE HEATMAP TEST — GCW Project</h1>
+		<span>Leaflet.js + postcodes.io</span>
+	</header>
+
+
+	<!-- The Toolbar Structure -->
+
+	<div class="toolbar">
+		<div class="toolbar-group">
+			<span class="toolbar-label">Category:</span>
+			<button class="active" id="btn-all" onclick="applyFilter('all')">All Data</button>
+			<button id="btn-drugs"onclick="applyFilter('drugs')">Drugs</button>
+			<button id="btn-weapons"onclick="applyFilter('weapons')">Weapons</button>
+			<button id="btn-counter"onclick="applyFilter('counterfeit')">Counterfeit</button>
+		</div>
+
+		<div class="toolbar-group">
+			<span class="toolbar-label">Postcode:</span>
+			<input type="text" id="postcode-input"placeholder="e.g. LS1, BD, M1"maxlength="8"oninput="applyPostcodeFilter()"/>
+		</div>
+
+		<label>
+			Radius
+			<input type="range" min="5" max="60" value="25"oninput="setRadius(this.value)"/><span id="r-val">25</span>
+		</label>
+
+		<label>
+			Blur
+			<input type="range" min="5" max="40" value="15"oninput="setBlur(this.value)"/>
+			<span id="b-val">15</span>
+		</label>
+
+		<button onclick="clearMap()"style="border-color:#ddd;color:#999">Clear</button>
+		<span id="status">Loading...</span>
+	</div>
+
+
+	<!-- The Map Structure -->
+
+	<div class="map-wrap">
+		<div id="map"></div>
+		<div class="legend">
+			<div class="legend-title">Intensity Level</div>
+			<div class="legend-bar"></div>
+
+			<div class="legend-labels">
+				<span>Low</span>
+				<span>High</span>
+			</div>
+
+			<div class="legend-swatches">
+				<div class="swatch-row">
+					<div class="swatch" style="background:#0000cc"></div>Very Low</div>
+					
+
+					<div class="swatch-row">
+						<div class="swatch" style="background:#00aa00"></div>Low</div>
+						<div class="swatch-row">
+							<div class="swatch" style="background:#cccc00"></div>Medium</div>
+							<div class="swatch-row">
+								<div class="swatch" style="background:#dd2200"></div>High</div>
+								<div class="swatch-row">
+									<div class="swatch" style="background:#880088"></div>Hotspot</div>
+								</div>
+							</div>
+						</div>
+
+						<div id="log">» Ready.</div>
+					</header>
+				</body>
+
+
+<!-- Generating the map with Javascript -->
+
+<script>
+	const map = L.map('map', { center:[53.8,-1.6], zoom:7 });    //INTEGRATION: Ensure the HTML contains <div id="map"></div>; if Abdul uses a different ID, update L.map('map') to match it.
+	L.tileLayer(
+		'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
+		{
+			attribution: '© OpenStreetMap © CARTO',
+			subdomains: 'abcd',
+			maxZoom: 19
+		}
+		).addTo(map);
+
+	let heatLayer = null;
+	let cfg = { radius:25, blur:15 };
+	let currentCategory = 'all';
+	let currentPostcode = '';
+
+	const SAMPLE = [
+		{postcode:'LS1 1BA', category:'Drugs', sub:'Cannabis'},
+		{postcode:'LS1 1BA', category:'Drugs', sub:'Cocaine'},
+		{postcode:'BD1 1HX', category:'Drugs', sub:'Heroin'},
+		{postcode:'S1 1DA', category:'Weapons', sub:'Knife'},
+		{postcode:'M1 1AE', category:'Drugs', sub:'Cannabis'},
+		{postcode:'E1 6RF', category:'Counterfeit', sub:'Currency'},
+		// ... sample records ---------------------------------------------// INTEGRATION: the data will need replaciing this test array with real CSV data and ensure the postcode field name matches the CSV.
+	];
+
+	function applyFilter(cat) {
+		currentCategory = cat;
+		['all','drugs','weapons','counter'].forEach(id => {
+			document.getElementById('btn-' + id)
+			?.classList.remove('active');
+		});
+		const id_map = {
+			all:'all', drugs:'drugs',
+			weapons:'weapons', counterfeit:'counter'
+		};
+		document.getElementById('btn-' + (id_map[cat] || 'all'))
+		.classList.add('active');
+		runFilter();
+	}
+
+	function applyPostcodeFilter() {
+		currentPostcode = document
+		.getElementById('postcode-input')
+		.value.trim().toUpperCase();
+		runFilter();
+	}
+
+	function runFilter() {
+		let rows = SAMPLE;
+		if (currentCategory !== 'all')
+			rows = rows.filter(
+				r => r.category.toLowerCase() === currentCategory
+				);
+		if (currentPostcode.length > 0)
+			rows = rows.filter(
+				r => r.postcode.toUpperCase()
+				.replace(/\s/g, '')
+				.startsWith(currentPostcode.replace(/\s/g, ''))
+				);
+		if (rows.length === 0) {
+			setLog('No records match.');
+			if (heatLayer) { map.removeLayer(heatLayer); heatLayer = null; }
+			return;
+		}
+		geocodeAndRender(rows);
+	}
+
+
+	async function geocodeAndRender(rows) {const postcodes = [...new Set(rows.map(r => r.postcode).filter(Boolean))];
+	const cache = {};
+	for (let i = 0; i < postcodes.length; i += 100) {try {const res = await fetch('https://api.postcodes.io/postcodes',{method: 'POST',headers: {'Content-Type': 'application/json'},body: JSON.stringify({
+		postcodes: postcodes.slice(i, i + 100)
+	})
+}
+);
+	const data = await res.json();
+	data.result.forEach(item => {
+		cache[item.query] = item.result
+		? {lat: item.result.latitude,
+			lng: item.result.longitude}
+			: null;
+		});
+} catch(e) {
+	setLog('Geocoding failed — check internet.');
+	return;
+}
+}
+const countMap = {};
+rows.forEach(r => {
+	countMap[r.postcode] = (countMap[r.postcode] || 0) + 1;
+});
+const maxCount = Math.max(...Object.values(countMap));
+const points = [];
+rows.forEach(r => {
+	const loc = cache[r.postcode];
+	if (loc) points.push([loc.lat, loc.lng,
+		countMap[r.postcode] / maxCount]);
+});
+renderHeatmap(points);
+setLog('Done — ' + points.length + ' points mapped.');
+if (points.length > 0) {
+	map.fitBounds(
+		L.latLngBounds(points.map(p => [p[0], p[1]])),
+		{padding: [60, 60]}
+		);
+}
+}
+
+function renderHeatmap(points) {
+	if (heatLayer) map.removeLayer(heatLayer);
+	heatLayer = L.heatLayer(points, {
+		radius: cfg.radius,
+		blur: cfg.blur,
+		maxZoom: 18,
+		minOpacity: 0.7,
+		gradient: {
+			0.0: '#0000cc',
+			0.35: '#00aa00',
+			0.65: '#cccc00',
+			0.85: '#dd2200',
+			1.0: '#880088'
+		}
+	}).addTo(map);
+}
+
+
+// 
+// INTEGRATION POINT
+// This is how Luqmaan's filter system controls your heatmap.
+// He calls this function and passes his filtered rows.
+// filteredRows = array of objects with a 'postcode' field.
+// 
+function updateHeatmap(filteredRows) {
+	geocodeAndRender(filteredRows);
+}
+
+
+function setRadius(v) {
+	cfg.radius = +v;
+	document.getElementById('r-val').textContent = v;
+	if (heatLayer) heatLayer.setOptions({radius: +v});
+}
+function setBlur(v) {
+	cfg.blur = +v;
+	document.getElementById('b-val').textContent = v;
+	if (heatLayer) heatLayer.setOptions({blur: +v});
+}
+function clearMap() {
+	if (heatLayer) { map.removeLayer(heatLayer); heatLayer = null; }
+	document.getElementById('postcode-input').value = '';
+	currentPostcode = '';
+	document.getElementById('status').textContent = 'Cleared';
+	setLog('Map cleared.');
+}
+function setLog(msg) {
+	document.getElementById('log').innerHTML =
+	'» <span>' + msg + '</span>';
+}
+applyFilter('all');
+
+</script>
+</body>
+</html>
